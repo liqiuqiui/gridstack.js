@@ -1123,6 +1123,8 @@ export class GridStack {
    * grid.on('added', function(e, items) { log('added ', items)} );
    * or
    * grid.on('added removed change', function(e, items) { log(e.type, items)} );
+   * or
+   * grid.on(['added', 'removed', 'change'], function (e, items) { log(e.type, items) });
    *
    * Note: in some cases it is the same as calling native handler and parsing the event.
    * grid.el.addEventListener('added', function(event) { log('added ', event.detail)} );
@@ -1133,8 +1135,14 @@ export class GridStack {
   public on(name: 'change' | 'added' | 'removed' | 'resizecontent', callback: GridStackNodesHandler): GridStack
   public on(name: 'resizestart' | 'resize' | 'resizestop' | 'dragstart' | 'drag' | 'dragstop', callback: GridStackElementHandler): GridStack
   public on(name: string, callback: GridStackEventHandlerCallback): GridStack
-  public on(name: GridStackEvent | string, callback: GridStackEventHandlerCallback): GridStack {
+  public on(name:GridStackEvent[], callback: GridStackEventHandlerCallback): GridStack
+  public on(name: GridStackEvent | string | GridStackEvent[], callback: GridStackEventHandlerCallback): GridStack {
     // check for array of names being passed instead
+    if (Array.isArray(name)) {
+      name.forEach(event => this.on(event, callback))
+      return this
+    }
+
     if (name.indexOf(' ') !== -1) {
       let names = name.split(' ') as GridStackEvent[];
       names.forEach(name => this.on(name, callback));
@@ -1166,8 +1174,14 @@ export class GridStack {
    * @param name of the event (see possible values)
    */
   public off(name: GridStackEvent): GridStack
-  public off(name: string): GridStack {
+  public off(name: GridStackEvent[]):GridStack
+  public off(name: string | GridStackEvent[]): GridStack {
     // check for array of names being passed instead
+    if (Array.isArray(name)) {
+      name.forEach(eventName => this.off(eventName))
+      return this
+    }
+
     if (name.indexOf(' ') !== -1) {
       let names = name.split(' ') as GridStackEvent[];
       names.forEach(name => this.off(name));
